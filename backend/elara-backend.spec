@@ -14,6 +14,13 @@ from PyInstaller.utils.hooks import collect_all
 _bundle = [
     "faster_whisper",
     "kokoro_onnx",
+    # kokoro_onnx -> phonemizer -> segments -> csvw -> language_tags all ship
+    # JSON/data files loaded at import time that collect_all("kokoro_onnx")
+    # does not reach on its own; without these the frozen exe crashes on import.
+    "phonemizer",
+    "segments",
+    "csvw",
+    "language_tags",
     "ddgs",
     "trafilatura",
     "sounddevice",
@@ -22,6 +29,7 @@ _bundle = [
     "screen_brightness_control",
     # agentic layer: cloud brain, browser control, native-app control
     "anthropic",
+    "claude_agent_sdk",  # imported lazily in brain/claude_code.py
     "playwright",
     "pywinauto",
 ]

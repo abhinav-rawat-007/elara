@@ -1,13 +1,13 @@
 name: build
 
-# Builds the Elara Tauri desktop app on Windows and publishes the installer.
+# Builds the Elara Tauri desktop app on Windows, bundles the Python backend as a
+# sidecar, and publishes the installer.
 #
-# NOTE: The Python backend (elara-backend.exe) is NOT bundled here. It is built
-# separately as a Tauri "sidecar" (see scripts/build-sidecar.ps1) because it
-# pulls in whisper + kokoro and a ~340 MB model download that is impractical to
-# fetch in CI. This workflow proves the frontend + Rust shell build and produces
-# the installer for the app itself; wire in the sidecar for a fully offline
-# distributable.
+# The backend is frozen into elara-backend.exe with PyInstaller and staged as a
+# Tauri sidecar so the shipped app runs on machines without Python. The Kokoro
+# TTS model files (~340 MB) are NOT bundled — the backend downloads them once at
+# first run into %APPDATA%\Elara\models (see backend/paths.py), so voice works
+# after that one-time fetch.
 
 on:
   push:
@@ -46,17 +46,47 @@ jobs:
         with:
           workspaces: src-tauri
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
       - name: Install frontend dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Frontend tests
         run: pnpm test
 
+      # --- Python backend sidecar -------------------------------------------
+      - name: Install backend dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt pyinstaller
+
+      - name: Build backend sidecar (PyInstaller)
+        working-directory: backend
+        run: pyinstaller --noconfirm --clean elara-backend.spec
+
+      - name: Stage sidecar for Tauri
+        shell: pwsh
+        run: |
+          $triple = (rustc -Vv | Select-String '^host:').ToString().Split(' ')[1]
+          $dest = "src-tauri/binaries"
+          New-Item -ItemType Directory -Force -Path $dest | Out-Null
+          Copy-Item "backend/dist/elara-backend.exe" "$dest/elara-backend-$triple.exe" -Force
+          Write-Host "Staged sidecar: $dest/elara-backend-$triple.exe"
+      # ----------------------------------------------------------------------
+
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          # Merge the sidecar config so the frozen backend is bundled into the
+          # installer. The base tauri.conf.json intentionally omits externalBin
+          # so `pnpm tauri dev` keeps working without building the sidecar first.
+          args: --config src-tauri/tauri.sidecar.conf.json
           # On a v* tag push this creates a GitHub Release with the installers
           # attached. On branch pushes / PRs it just builds and uploads artifacts.
           tagName: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
