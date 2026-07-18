@@ -1,0 +1,51 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Python backend
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/config.json
+backend/elara.db
+*.pyc
+.pytest_cache/
+
+# SECURITY: Chrome profile for Elara's browser control — contains saved logins,
+# cookies, and session data. Must NEVER be committed.
+backend/browser_profile/
+
+# Large model downloads (~340 MB Kokoro TTS) — fetched separately, see README.
+backend/models/
+
+# Any local secrets / env overrides
+.env
+.env.*
+*.pem
+*.key
+
+# Sidecar build artifacts
+backend/build/
+backend/dist/
+src-tauri/binaries/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

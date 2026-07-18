@@ -1,0 +1,214 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Registered so the orb's mood colors cross-fade (custom properties only
+ * animate when typed). Values are overridden inline by the Orb per emotion.
+ */
+@property --elara-glow {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #e9b458;
+}
+@property --elara-glow-soft {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: rgba(233, 180, 88, 0.14);
+}
+
+/*
+ * Elara — celestial instrument theme.
+ * Dark-only by design (a desktop HUD): ink-night surfaces, hairline borders,
+ * a single moonlight-amber accent. Conversation is set in IBM Plex Sans;
+ * machine telemetry (status, labels, hints) in IBM Plex Mono.
+ */
+:root {
+  --radius: 0.75rem;
+
+  --background: #0b0d14;
+  --background-deep: #06070c;
+  --foreground: #ece9e1;
+
+  --card: #11141d;
+  --card-foreground: #ece9e1;
+  --popover: #141824;
+  --popover-foreground: #ece9e1;
+
+  --primary: #e9b458;
+  --primary-foreground: #1c1305;
+  --secondary: #181c29;
+  --secondary-foreground: #d9d5cb;
+  --muted: #181c29;
+  --muted-foreground: #9298a6;
+  --accent: #1d2230;
+  --accent-foreground: #ece9e1;
+
+  --destructive: #e56a5e;
+  --success: #7ebd8f;
+
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: rgba(233, 180, 88, 0.6);
+
+  /* Elara accents */
+  --elara-glow: #e9b458;
+  --elara-glow-deep: #b97f2c;
+  --elara-glow-soft: rgba(233, 180, 88, 0.14);
+  --elara-night: #4a5578;
+}
+
+/* The app is permanently dark (html.dark); keep the class as an alias. */
+.dark {
+  --background: #0b0d14;
+  --foreground: #ece9e1;
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-background-deep: var(--background-deep);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-elara-glow: var(--elara-glow);
+  --color-elara-glow-deep: var(--elara-glow-deep);
+  --color-elara-night: var(--elara-night);
+
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  /* Fractional DPI scaling can round 100vh up a pixel — never show a
+     viewport scrollbar for it. */
+  html {
+    overflow: hidden;
+  }
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    background-image: radial-gradient(
+      120% 90% at 30% 0%,
+      var(--background) 0%,
+      var(--background-deep) 100%
+    );
+    overflow: hidden;
+    user-select: none;
+  }
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  /*
+   * Scrollbars — hairline instrument rails, not stock Windows chrome.
+   * Transparent track; a slim moonlit pill (4px visible inside a 10px
+   * gutter, so the grab target stays comfortable) that brightens on
+   * hover and warms to amber while gripped.
+   * WebView2 is Chromium, so ::-webkit-scrollbar always applies here;
+   * the standard properties are scoped to engines without it.
+   */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+    background: transparent;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    min-height: 48px;
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-color: color-mix(in srgb, var(--foreground) 16%, transparent);
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in srgb, var(--foreground) 30%, transparent);
+  }
+  ::-webkit-scrollbar-thumb:active {
+    background-color: color-mix(in srgb, var(--elara-glow) 55%, transparent);
+  }
+  ::-webkit-scrollbar-corner,
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
+
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: color-mix(in srgb, var(--foreground) 22%, transparent)
+        transparent;
+    }
+  }
+}
+
+@layer utilities {
+  /* Telemetry text — the machine's voice. */
+  .telemetry {
+    @apply font-mono text-[11px] uppercase tracking-[0.18em];
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The orb wears its emotion here — glow colors morph, never snap. */
+  .orb-mood {
+    transition:
+      --elara-glow 900ms ease,
+      --elara-glow-soft 900ms ease;
+  }
+
+  .star-twinkle {
+    animation: star-twinkle 4.5s ease-in-out infinite;
+  }
+}
+
+@keyframes star-twinkle {
+  0%,
+  100% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

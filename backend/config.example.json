@@ -1,0 +1,13 @@
+{
+  "model": "qwen3:8b",
+  "speak_replies": true,
+  "stt_model": "small",
+  "user_name": "friend",
+  "ollama_host": "http://127.0.0.1:11434",
+  "proactive": true,
+  "proactive_minutes": 12,
+  "anthropic_api_key": "",
+  "cloud_model": "claude-sonnet-5",
+  "cloud_mode": "auto",
+  "cloud_backend": "auto"
+}
