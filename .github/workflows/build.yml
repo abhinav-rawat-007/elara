@@ -17,6 +17,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Needed so tauri-action can create the GitHub Release and upload installers.
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
